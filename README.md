@@ -11,5 +11,5 @@ Thanks https://github.com/h4ckninja/twitter-video-downloader for video downloadi
 ## TODO:
 - make `--byfolder` option works
 
-Default naming method is <username>/<tweetid>_<order>.<extension>,
-plan to have alter way to save files as <username>_<tweetid>_<order>.<extension> for better overview.
+Default naming method is `<username>/<tweetid>_<order>.<extension>`,
+plan to have alter way to save files as `<username>_<tweetid>_<order>.<extension>` for better overview.
