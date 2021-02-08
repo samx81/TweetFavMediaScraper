@@ -1,0 +1,8 @@
+requests
+m3u8
+ffmpeg-python
+selenium
+tqdm
+pandas
+beautifulsoup4
+tabulate
