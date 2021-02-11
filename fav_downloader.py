@@ -139,9 +139,7 @@ class MediaDownloader:
     
     def download(self):
         t = tqdm(self.tweetdict.values(),bar_format=Config.bar_format)
-        for tweet in t:
-            t.set_postfix_str(f'Success: {self.downloaded}, Skipped: {self.skipped}, Error: {self.error}')
-            
+        for tweet in t:            
             # Do some need to try here?
             try:
                 tweettime = tweet.find('time')['datetime'].split('T')[0]
@@ -162,6 +160,7 @@ class MediaDownloader:
             if not os.path.isdir(f'{self.rootdir}/{author}'):
                 os.mkdir(f'{self.rootdir}/{author}')
                 
+            t.set_postfix_str(f'Success: {self.downloaded}, Skipped: {self.skipped}, Error: {self.error}')
             t.set_description_str(f"Progressing Tweet @ {tweettime}")
             
             # Video Exists!
@@ -189,14 +188,20 @@ def scroller(url, scroll_n, retry_n):
             browser.add_cookie(cookie)
     else:
         browser.get('https://www.twitter.com/login')
+        time.sleep(2)
+        browser.execute_script("window.alert('{}')".format("Please login your account."))
 
-        time.sleep(1.5)
-        loginname = input('This will login your twitter account on selenium.')
-        password = getpass()
-        browser.find_element_by_name('session[username_or_email]').send_keys(loginname)
-        browser.find_element_by_name('session[password]').send_keys(password)
-        browser.find_element_by_css_selector("div[data-testid='LoginForm_Login_Button']").click()
-        time.sleep(3)
+        # time.sleep(1.5)
+        # loginname = input('This will login your twitter account on selenium.')
+        # password = getpass()
+        # browser.find_element_by_name('session[username_or_email]').send_keys(loginname)
+        # browser.find_element_by_name('session[password]').send_keys(password)
+        # browser.find_element_by_css_selector("div[data-testid='LoginForm_Login_Button']").click()
+        # time.sleep(3)
+        homeurl = 'https://twitter.com/home'
+        while browser.current_url != homeurl:
+            print(browser.current_url)
+            time.sleep(3)
 
         pickle.dump( browser.get_cookies() , open("logincookies.pkl","wb"))
 
@@ -207,7 +212,8 @@ def scroller(url, scroll_n, retry_n):
     last_item = ''
     traverse_history = []
     retry = 0
-    for n in range(scroll_n):
+    n = 0
+    while n < scroll_n:
         tweets = BeautifulSoup(browser.page_source, "html.parser").select('section[role = "region"]')[0].div.div
         tlen = len(tweets.contents)
         traverse_history.clear()
@@ -229,6 +235,7 @@ def scroller(url, scroll_n, retry_n):
         else:
             last_item = traverse_history[0]
             retry = 0
+            n+=1
         browser.execute_script("window.scrollTo(0, {})".format(traverse_history[0]))
         time.sleep(2)
 
