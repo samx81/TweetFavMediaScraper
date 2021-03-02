@@ -40,9 +40,9 @@ def prettydict(data):
     return pd.DataFrame.from_dict(data, orient='index', columns=['url']).rename_axis('height').to_markdown(tablefmt='github')
 
 class Config:
-    textcss = 'css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci r-1mi0q7o'
+    textcss = 'css-1dbjc4n r-1iusvr4 r-16y2uox r-1777fci'
     linkcss = 'css-4rbku5 css-18t94o4 css-901oao r-m0bqgq r-1loqt21 r-1q142lx r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-3s2u2q r-qvutc0'
-    imgsetcss = 'css-1dbjc4n r-1bs4hfb r-1867qdf r-1phboty r-rs99b7 r-156q2ks r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg'
+    imgsetcss = 'css-1dbjc4n r-1bs4hfb r-1867qdf r-1phboty r-rs99b7' # r-156q2ks r-1ny4l3l r-1udh08x r-o7ynqc r-6416eg'
     bar_format = "{desc}{postfix} |{bar}|{percentage:3.0f}% [{n_fmt}/{total_fmt}: {elapsed}<{remaining}]"
 
 class MediaDownloader:
@@ -143,9 +143,9 @@ class MediaDownloader:
             # Do some need to try here?
             try:
                 tweettime = tweet.find('time')['datetime'].split('T')[0]
-                textblock = tweet.find('div', {'class':self.textcss}).div.next_sibling.div.div
+                textblock = tweet.find('div', {'class':re.compile(r'^{}'.format(self.textcss))}).div.next_sibling.div.div
                 texts = textblock.get_text() if textblock else ""
-                imgset = tweet.find('div', {'class':self.imgsetcss}) # this and next may not need to try
+                imgset = tweet.find('div', {'class':re.compile(r'^{}'.format(self.imgsetcss))}) # this and next may not need to try
                 video = tweet.find('div', {'data-testid':'videoPlayer'})
                 
                 authorinfo = tweet.find('a', {'class':self.linkcss})['href'].split('/')[1:] # Throw away empty [0]
@@ -202,18 +202,29 @@ def scroller(url, scroll_n, retry_n):
         while browser.current_url != homeurl:
             print(browser.current_url)
             time.sleep(3)
-
+        time.sleep(3)
         pickle.dump( browser.get_cookies() , open("logincookies.pkl","wb"))
 
     browser.get(url)
-    time.sleep(5)
+    print('Checking Page\'s Ready State..',end='')
+    while True:
+        time.sleep(2)
+        page_state = browser.execute_script('return document.readyState;')
+        if browser.current_url == url and page_state == 'complete' and BeautifulSoup(browser.page_source, "html.parser").select('section[role = "region"]'):
+            print('Done.')
+            break
+        print('.',end='')
 
+
+    
     tweetdict = {}
     last_item = ''
     traverse_history = []
     retry = 0
     n = 0
     while n < scroll_n:
+        if browser.current_url != url:
+            continue
         tweets = BeautifulSoup(browser.page_source, "html.parser").select('section[role = "region"]')[0].div.div
         tlen = len(tweets.contents)
         traverse_history.clear()
@@ -223,7 +234,7 @@ def scroller(url, scroll_n, retry_n):
             if i in tweetdict.keys():
                 continue
             traverse_history.append(i)
-            tweetdict[int(i)] = t
+            tweetdict[int(float(i))] = t
         print(f'  {traverse_history[0]} {n}', end="\r")
         if last_item == traverse_history[0]:
             retry += 1
@@ -246,8 +257,15 @@ def scroller(url, scroll_n, retry_n):
 if __name__ == '__main__':
     args = parser.parse_args()
     print(args.out_dir)
-    path_to_chromedriver ="./geckodriver"            #enter path of chromedriver
-    browser = webdriver.Firefox(executable_path = path_to_chromedriver)
+    # Check for browser type
+    geckodriver, chromedriver = ['./geckodriver', './chromedriver']
+    if os.path.isfile(geckodriver):
+        browser = webdriver.Firefox(executable_path = geckodriver)
+    elif os.path.isfile(chromedriver):
+        browser = webdriver.Chrome(executable_path = chromedriver)
+    else:
+        print("Can't find any driver, Exiting.")
+        exit()
     url = 'https://twitter.com/{}/likes'.format(args.username)
     
     
