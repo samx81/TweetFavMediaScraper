@@ -6,3 +6,4 @@ tqdm
 pandas
 beautifulsoup4
 tabulate
+git+git://github.com/h4ckninja/twitter-video-downloader.git
