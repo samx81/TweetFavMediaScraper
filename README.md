@@ -9,7 +9,8 @@ Supports Images, Video and GIF scraping.
 Thanks https://github.com/h4ckninja/twitter-video-downloader for video downloading features.
 
 ## TODO:
-- make `--byfolder` option works
+- [ ] make `--byfolder` option works
+- [ ] replace browser driver with headless browser
 
 Default naming method is `<username>/<tweetid>_<order>.<extension>`,
 plan to have alter way to save files as `<username>_<tweetid>_<order>.<extension>` for better overview.
